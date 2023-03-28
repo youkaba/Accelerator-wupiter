@@ -1,0 +1,46 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/demo-service"
+    username: dbuser
+    password: pwd123
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/changelog-master.xml
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8403/auth/realms/demo_realm
+          jwk-set-uri: http://localhost:8403/auth/realms/demo_realm/protocol/openid-connect/certs
+
+  cloud:
+    stream:
+      function:
+        definition: consume;supply;
+      kafka:
+        binder:
+          brokers: localhost:9092
+          auto-create-topics: true
+      bindings:
+        consume-in-0:
+          binder: kafka
+          destination: todo_topic
+          contentType: application/json
+          group: demo-service
+          consumer:
+            concurrency: 10
+        supply-out-0:
+          binder: kafka
+          destination: todo_topic
+          contentType: application/json
+
+app:
+  jwt:
+    authoritiesClaimName: roles
+    authorityPrefix: ROLE_
